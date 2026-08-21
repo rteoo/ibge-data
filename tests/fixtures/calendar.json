@@ -1,0 +1,26 @@
+{
+  "count": 1,
+  "page": 1,
+  "totalPages": 1,
+  "nextPage": null,
+  "previousPage": null,
+  "showingFrom": 1,
+  "showingTo": 1,
+  "items": [
+    {
+      "id": 4282,
+      "titulo": "Índice Nacional de Preços ao Consumidor Amplo",
+      "nome_produto": "Índice Nacional de Preços ao Consumidor Amplo",
+      "data_divulgacao": "11/08/2026 12:00:00",
+      "tipo_id": 1,
+      "tipo": "Divulgação de Indicadores",
+      "produto_id": 9256,
+      "alias_produto": "indice-nacional-de-precos-ao-consumidor-amplo",
+      "ano_referencia_inicio": 2026,
+      "mes_referencia_inicio": 7,
+      "ano_referencia_fim": 0,
+      "mes_referencia_fim": 0,
+      "link": ""
+    }
+  ]
+}

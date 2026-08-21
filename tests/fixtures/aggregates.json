@@ -1,0 +1,12 @@
+[
+  {
+    "id": "SNIPC",
+    "nome": "Índice Nacional de Preços ao Consumidor Amplo",
+    "agregados": [
+      {
+        "id": "1737",
+        "nome": "IPCA - série histórica"
+      }
+    ]
+  }
+]

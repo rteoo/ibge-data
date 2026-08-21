@@ -1,0 +1,59 @@
+[
+  {
+    "NC": "Nível Territorial (Código)",
+    "NN": "Nível Territorial",
+    "MC": "Unidade de Medida (Código)",
+    "MN": "Unidade de Medida",
+    "V": "Valor",
+    "D1C": "Brasil (Código)",
+    "D1N": "Brasil",
+    "D2C": "Variável (Código)",
+    "D2N": "Variável",
+    "D3C": "Mês (Código)",
+    "D3N": "Mês"
+  },
+  {
+    "D1C": "1",
+    "D1N": "Brasil",
+    "D2C": "2265",
+    "D2N": "Índice geral",
+    "D3C": "202401",
+    "D3N": "janeiro 2024",
+    "MC": "2",
+    "MN": "Número-índice",
+    "V": "6543.2100"
+  },
+  {
+    "D1C": "1",
+    "D1N": "Brasil",
+    "D2C": "2265",
+    "D2N": "Índice geral",
+    "D3C": "202402",
+    "D3N": "fevereiro 2024",
+    "MC": "2",
+    "MN": "Número-índice",
+    "V": "X"
+  },
+  {
+    "D1C": "1",
+    "D1N": "Brasil",
+    "D2C": "2265",
+    "D2N": "Índice geral",
+    "D3C": "202403",
+    "D3N": "março 2024",
+    "MC": "2",
+    "MN": "Número-índice",
+    "V": "-"
+  },
+  {
+    "D1C": "1",
+    "D1N": "Brasil",
+    "D2C": "2265",
+    "D2N": "Índice geral",
+    "D3C": "202404",
+    "D3N": "abril 2024",
+    "MC": "2",
+    "MN": "Número-índice",
+    "V": "0"
+  }
+]
