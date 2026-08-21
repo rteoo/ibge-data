@@ -10,6 +10,7 @@ from ibgepy import (
     fetch_periods,
     fetch_variable,
     fetch_variable_latest,
+    parse_aggregate_observations,
     parse_aggregate_list,
 )
 from conftest import FixtureTransport
@@ -39,3 +40,16 @@ def test_all_aggregate_endpoints_build_official_paths() -> None:
     assert urls[2].endswith("/7060/localidades/N1%2Ftest")
     assert "/7060/periodos/202607/variaveis/63?" in urls[3]
     assert "/7060/variaveis/63?" in urls[4]
+
+
+def test_parses_self_describing_aggregate_observations() -> None:
+    fixture = Path(__file__).parent / "fixtures" / "aggregate_values.json"
+    transport = FixtureTransport(fixture.read_bytes())
+    response = fetch_variable(7060, 63, "202606,202607", localities="N1[all]", transport=transport)
+    observations = parse_aggregate_observations(response, aggregate_id=7060)
+    assert observations[0].variable_id == "63"
+    assert observations[0].period_code == "202606"
+    assert str(observations[0].value) == "0.16"
+    assert observations[0].classifications == (("315", "7169", "Índice geral"),)
+    assert observations[1].value is None
+    assert observations[1].special_value.value == "..."

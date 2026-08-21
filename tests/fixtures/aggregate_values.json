@@ -1,0 +1,28 @@
+[
+  {
+    "id": "63",
+    "variavel": "IPCA - Variação mensal",
+    "unidade": "%",
+    "resultados": [
+      {
+        "classificacoes": [
+          {
+            "id": "315",
+            "nome": "Geral, grupo, subgrupo, item e subitem",
+            "categoria": {"7169": "Índice geral"}
+          }
+        ],
+        "series": [
+          {
+            "localidade": {
+              "id": "1",
+              "nivel": {"id": "N1", "nome": "Brasil"},
+              "nome": "Brasil"
+            },
+            "serie": {"202606": "0.16", "202607": "..."}
+          }
+        ]
+      }
+    ]
+  }
+]

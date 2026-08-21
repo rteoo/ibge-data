@@ -1,6 +1,7 @@
 from .aggregates import (
     AggregateDocument,
     AggregateFilters,
+    AggregateObservation,
     AggregateSummary,
     fetch_aggregates,
     fetch_localities,
@@ -10,6 +11,7 @@ from .aggregates import (
     fetch_variable_latest,
     parse_aggregate_document,
     parse_aggregate_list,
+    parse_aggregate_observations,
 )
 from .calendar import CalendarEntry, CalendarQuery, fetch_calendar, parse_calendar
 from .errors import (
@@ -41,6 +43,7 @@ __version__ = "0.1.0"
 __all__ = [
     "AggregateDocument",
     "AggregateFilters",
+    "AggregateObservation",
     "AggregateSummary",
     "CalendarEntry",
     "CalendarQuery",
@@ -75,6 +78,7 @@ __all__ = [
     "fetch_variable_latest",
     "parse_aggregate_document",
     "parse_aggregate_list",
+    "parse_aggregate_observations",
     "parse_calendar",
     "parse_values",
 ]
