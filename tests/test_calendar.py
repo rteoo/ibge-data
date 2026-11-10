@@ -4,9 +4,9 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-
-from ibgedata import CalendarQuery, InvalidQueryError, fetch_calendar, parse_calendar
 from conftest import FixtureTransport
+
+from ibge_data import CalendarQuery, InvalidQueryError, fetch_calendar, parse_calendar
 
 
 def test_calendar_separates_reference_period_and_release_date() -> None:

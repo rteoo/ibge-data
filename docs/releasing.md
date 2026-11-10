@@ -1,26 +1,28 @@
-# ibgedata release preparation
+# ibge-data release preparation
 
-The repository, distribution, and import namespace are `ibgedata`.
+The repository and PyPI distribution are `ibge-data`; the Python import package
+is `ibge_data`. Install with `pip install ibge-data` and import with
+`from ibge_data import ...`.
 The prepared first release is **0.1.0**. This migration builds on the merged
 agent-acquisition fixes; it preserves their parser version (`ibge-json-2`),
 query bounds, structured errors, raw artifacts, and no-runtime-dependency contract.
 
 The unrelated `ibgepy` project on PyPI is not this client. Change source-install
-URLs to `https://github.com/rteoo/ibgedata` and imports to `ibgedata`.
+URLs to `https://github.com/rteoo/ibge-data` and imports to `ibge_data`.
 The new wheel does not install an `ibgepy` compatibility namespace.
 
 ## GitHub and PyPI
 
-Rename `rteoo/ibgepy` to `rteoo/ibgedata`, preserving its repository ID, private
+Rename `rteoo/ibgedata` to `rteoo/ibge-data`, preserving its repository ID, private
 visibility, refs, and controls. The rollback is renaming the same repository
-back to `ibgepy`. Existing checkout directories may keep their current names;
-update origins to `https://github.com/rteoo/ibgedata.git`.
+back to `ibgedata`. Existing checkout directories may keep their current names;
+update origins to `https://github.com/rteoo/ibge-data.git`.
 
 Register this pending Trusted Publisher in the intended PyPI account:
 
 | Project | Owner | Repository | Workflow | Environment |
 |---|---|---|---|---|
-| `ibgedata` | `rteoo` | `ibgedata` | `publish.yml` | `pypi` |
+| `ibge-data` | `rteoo` | `ibge-data` | `publish.yml` | `pypi` |
 
 Create and protect the GitHub `pypi` environment before any upload. The patch
 does not configure account permissions or prove environment protection. Pending

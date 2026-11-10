@@ -1,6 +1,6 @@
-# Using ibgedata in agents
+# Using ibge-data in agents
 
-ibgedata is an acquisition library: explicit queries in, immutable raw response
+ibge-data is an acquisition library: explicit queries in, immutable raw response
 artifacts and typed observations out. It has no runtime dependencies, background
 tasks, automatic retries, implicit cache, or automatic query expansion.
 
@@ -22,7 +22,7 @@ flat-view results.
 ## Plan before acquiring
 
 ```python
-from ibgedata import (
+from ibge_data import (
     GeographySelection, SidraQuery, UrllibTransport, VariableSelection,
     build_values_url, fetch_values, parse_values,
 )

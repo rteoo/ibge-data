@@ -3,9 +3,10 @@
 Source: [Teô Personal Design System](https://github.com/rteoo/design-system-teo),
 **v2.7.1 (Ink & Copper)**, selected by Teô for this library's project identity.
 
-- `docs/ibgedata-icon.svg` is the editable README artwork; `assets/icon.svg` is its
+- `docs/ibge-data-icon.svg` is the editable README artwork; `assets/icon.svg` is its
   byte-identical project-discovery copy. Update both together.
-- `docs/ibgepy-icon.svg` remains a compatibility URL for previous README links.
+- `docs/ibgepy-icon.svg` and `docs/ibgedata-icon.svg` remain byte-identical
+  compatibility URLs for older READMEs. Update all four copies together.
 - Statistical columns represent IBGE observations, not an official IBGE mark.
 - Colors follow the source tokens: ink canvas `#11151B`, primary foreground
   `#F2EFE9`, muted foreground `#A8B0BC`, copper `#E6A05A`, and border `#465363`.

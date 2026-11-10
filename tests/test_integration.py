@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from ibgedata import (
+from ibge_data import (
     GeographySelection,
     SidraQuery,
     UrllibTransport,
