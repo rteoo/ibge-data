@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ibgepy import (
+from ibgedata import (
     AggregateFilters,
     fetch_aggregates,
     fetch_localities,

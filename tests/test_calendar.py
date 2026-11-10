@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from ibgepy import CalendarQuery, InvalidQueryError, fetch_calendar, parse_calendar
+from ibgedata import CalendarQuery, InvalidQueryError, fetch_calendar, parse_calendar
 from conftest import FixtureTransport
 
 

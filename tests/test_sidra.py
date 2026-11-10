@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from conftest import FixtureTransport
 
-from ibgepy import (
+from ibgedata import (
     GeographySelection,
     InvalidQueryError,
     OutputOptions,

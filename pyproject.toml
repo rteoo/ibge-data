@@ -3,12 +3,12 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ibgepy"
+name = "ibgedata"
 version = "0.1.0"
 description = "Typed, offline-testable client for official IBGE SIDRA APIs"
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = { text = "MIT" }
 authors = [{ name = "Rodrigo Teodoro", email = "rodrigoteodoro.90@gmail.com" }]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -26,6 +26,11 @@ classifiers = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "build>=1"]
 
+[project.urls]
+Homepage = "https://github.com/rteoo/ibgedata"
+Repository = "https://github.com/rteoo/ibgedata"
+Issues = "https://github.com/rteoo/ibgedata/issues"
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 
@@ -33,7 +38,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-ibgepy = ["py.typed"]
+ibgedata = ["py.typed"]
 
 [tool.pytest.ini_options]
 markers = [
