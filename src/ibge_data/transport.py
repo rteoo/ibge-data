@@ -70,7 +70,7 @@ class UrllibTransport:
 
     def get(self, url: str, *, headers: Mapping[str, str] | None = None) -> RawResponse:
         request_headers = dict(headers or {})
-        request_headers.setdefault("User-Agent", "ibgedata/0.1")
+        request_headers.setdefault("User-Agent", "ibge-data/0.1")
         request = urllib.request.Request(url, headers=request_headers, method="GET")
         fetched_at = datetime.now(timezone.utc)
         try:

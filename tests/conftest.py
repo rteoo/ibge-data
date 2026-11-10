@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime, timezone
-from typing import Mapping
 
-from ibgedata.transport import RawResponse
+from ibge_data.transport import RawResponse
 
 
 class FixtureTransport:

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class IbgeError(Exception):
-    """Base class for errors raised by ibgedata."""
+    """Base class for errors raised by ibge_data."""
 
 
 class InvalidQueryError(IbgeError, ValueError):

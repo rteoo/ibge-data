@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ibgedata import (
+from conftest import FixtureTransport
+
+from ibge_data import (
     AggregateFilters,
     fetch_aggregates,
     fetch_localities,
@@ -10,10 +12,9 @@ from ibgedata import (
     fetch_periods,
     fetch_variable,
     fetch_variable_latest,
-    parse_aggregate_observations,
     parse_aggregate_list,
+    parse_aggregate_observations,
 )
-from conftest import FixtureTransport
 
 
 def test_aggregate_list_is_typed_and_retains_raw_record() -> None:

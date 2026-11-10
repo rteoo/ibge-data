@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from ibgedata import HttpStatusError, RawResponse, TransportError, UrllibTransport
+from ibge_data import HttpStatusError, RawResponse, TransportError, UrllibTransport
 
 
 def test_raw_response_hash_is_content_addressed() -> None:

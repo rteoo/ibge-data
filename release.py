@@ -1,4 +1,4 @@
-"""Release an already merged ibgedata version; never bumps or commits main."""
+"""Release an already merged ibge-data version; never bumps or commits main."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = "rteoo/ibgedata"
+REPO = "rteoo/ibge-data"
 ROOT = Path(__file__).resolve().parent
 GATES = [
     (sys.executable, "-m", "pytest", "-m", "not integration", "-v"),
@@ -74,11 +74,11 @@ def tag_version(tag):
 def manifest_version():
     m = re.search(
         "^__version__\\s*=\\s*[\"\\']([^\"\\']+)",
-        (ROOT / "src/ibgedata/__init__.py").read_text(encoding="utf-8"),
+        (ROOT / "src/ibge_data/__init__.py").read_text(encoding="utf-8"),
         re.M,
     )
     if not m:
-        raise RuntimeError("src/ibgedata/__init__.py has no __version__")
+        raise RuntimeError("src/ibge_data/__init__.py has no __version__")
     return m.group(1)
 
 

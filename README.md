@@ -1,7 +1,7 @@
-# ibgedata
+# ibge-data
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/rteoo/ibgedata/main/docs/ibgedata-icon.svg" width="128" alt="ibgedata statistical columns icon">
+  <img src="https://raw.githubusercontent.com/rteoo/ibge-data/main/docs/ibge-data-icon.svg" width="128" alt="ibge-data statistical columns icon">
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rteoo/ibgedata/actions/workflows/tests.yml"><img src="https://github.com/rteoo/ibgedata/actions/workflows/tests.yml/badge.svg" alt="Test status"></a>
+  <a href="https://github.com/rteoo/ibge-data/actions/workflows/tests.yml"><img src="https://github.com/rteoo/ibge-data/actions/workflows/tests.yml/badge.svg" alt="Test status"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
@@ -31,11 +31,18 @@ replayed offline. This is an independent client, not an official IBGE product.
 
 ## Installation
 
-From source:
+Install the `ibge-data` distribution; use `ibge_data` in Python imports.
+The first PyPI release is being prepared. After publication:
 
 ```bash
-git clone https://github.com/rteoo/ibgedata.git
-cd ibgedata
+pip install ibge-data
+```
+
+Until then, install from source:
+
+```bash
+git clone https://github.com/rteoo/ibge-data.git
+cd ibge-data
 pip install .
 ```
 
@@ -47,7 +54,7 @@ pip install .
 ## Quick Start
 
 ```python
-from ibgedata import (
+from ibge_data import (
     GeographySelection,
     SidraQuery,
     UrllibTransport,
@@ -95,7 +102,7 @@ retrieve their descriptors. `parse_aggregate_document` retains these documents
 with provenance.
 
 ```python
-from ibgedata import UrllibTransport, fetch_variable, parse_aggregate_observations
+from ibge_data import UrllibTransport, fetch_variable, parse_aggregate_observations
 
 raw = fetch_variable(
     1737,
@@ -115,7 +122,7 @@ keep aggregate selections deliberately bounded.
 ### Calendar v3
 
 ```python
-from ibgedata import CalendarQuery, UrllibTransport, fetch_calendar, parse_calendar
+from ibge_data import CalendarQuery, UrllibTransport, fetch_calendar, parse_calendar
 
 raw = fetch_calendar(
     CalendarQuery(research="indice-nacional-de-precos-ao-consumidor-amplo", quantity=5),
@@ -168,8 +175,8 @@ See the [API boundary decision](docs/adr/0001-official-api-boundaries.md).
 ## Project Structure
 
 ```text
-ibgedata/
-├── src/ibgedata/
+ibge-data/
+├── src/ibge_data/
 │   ├── __init__.py      # Public API exports
 │   ├── aggregates.py    # Aggregates v3 queries and parsers
 │   ├── calendar.py      # Calendar v3 queries and parsers
@@ -179,7 +186,7 @@ ibgedata/
 │   └── py.typed         # Typed-package marker
 ├── docs/
 │   ├── adr/             # API boundary decisions
-│   └── ibgedata-icon.svg  # Editable project icon
+│   └── ibge-data-icon.svg  # Editable project icon
 ├── tests/               # Offline tests and recorded fixtures
 ├── pyproject.toml       # Packaging and test configuration
 └── README.md
@@ -215,7 +222,7 @@ check the source's terms and attribution requirements when redistributing it.
 
 ## Releasing
 
-The first `ibgedata` release is prepared as 0.1.0. The package uses the new
-`ibgedata` import namespace and does not install the unrelated PyPI project's
+The first `ibge-data` release is prepared as 0.1.0. The package uses the new
+`ibge_data` import namespace and does not install the unrelated PyPI project's
 `ibgepy` namespace. See [release preparation](docs/releasing.md) for publisher
 configuration and release gates. No PyPI upload is performed by preparing this patch.

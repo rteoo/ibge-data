@@ -42,7 +42,7 @@ jobs:
         run: python -m build
       - name: Import the wheel outside the checkout
         run: |
-          python -m venv "$RUNNER_TEMP/ibgedata-wheel"
-          "$RUNNER_TEMP/ibgedata-wheel/bin/python" -m pip install --no-deps dist/*.whl
+          python -m venv "$RUNNER_TEMP/ibge-data-wheel"
+          "$RUNNER_TEMP/ibge-data-wheel/bin/python" -m pip install --no-deps dist/*.whl
           cd "$RUNNER_TEMP"
-          "$RUNNER_TEMP/ibgedata-wheel/bin/python" -c "from importlib.metadata import version; import ibgedata; assert version('ibgedata') == ibgedata.__version__; assert all(hasattr(ibgedata, name) for name in ibgedata.__all__)"
+          "$RUNNER_TEMP/ibge-data-wheel/bin/python" -c "from importlib.metadata import version; import ibge_data; assert version('ibge-data') == ibge_data.__version__; assert all(hasattr(ibge_data, name) for name in ibge_data.__all__)"
