@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from conftest import FixtureTransport
 
 from ibgepy import (
     GeographySelection,
@@ -18,7 +19,6 @@ from ibgepy import (
     fetch_values,
     parse_values,
 )
-from conftest import FixtureTransport
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -79,9 +79,9 @@ def test_rejects_empty_members_and_invalid_output_options() -> None:
 def test_names_only_header_and_all_special_tokens() -> None:
     records = [
         {"V": "Valor", "D1N": "Brasil", "D2N": "Variável", "D3N": "Mês"},
-        {"V": "..", "D1C": "1", "D2C": "2265", "D3C": "202401"},
-        {"V": "...", "D1C": "1", "D2C": "2265", "D3C": "202402"},
-        {"V": "A", "D1C": "1", "D2C": "2265", "D3C": "202403"},
+        {"V": "..", "D1N": "Brasil", "D2N": "IPCA", "D3N": "janeiro 2024"},
+        {"V": "...", "D1N": "Brasil", "D2N": "IPCA", "D3N": "fevereiro 2024"},
+        {"V": "A", "D1N": "Brasil", "D2N": "IPCA", "D3N": "março 2024"},
     ]
     q = query(periods=("202401", "202402", "202403"), output=OutputOptions(fields="n"))
     transport = FixtureTransport(json.dumps(records).encode())
