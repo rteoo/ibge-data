@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import quote, urlencode
 
 from ._json import as_records, fetch_json, parse_json
@@ -48,7 +50,7 @@ class AggregateSummary:
 class AggregateDocument:
     endpoint: str
     records: tuple[Mapping[str, Any], ...]
-    fetched_at: Any
+    fetched_at: datetime
     sha256: str
 
 
@@ -91,7 +93,9 @@ def fetch_periods(aggregate: int, transport: Transport) -> RawResponse:
 def fetch_localities(aggregate: int, level: str, transport: Transport) -> RawResponse:
     if not level:
         raise InvalidQueryError("locality level cannot be empty")
-    return fetch_json(_url(f"/{_positive_id(aggregate)}/localidades/{quote(level, safe='')}"), transport)
+    return fetch_json(
+        _url(f"/{_positive_id(aggregate)}/localidades/{quote(level, safe='')}"), transport
+    )
 
 
 def fetch_variable(
@@ -161,10 +165,10 @@ def parse_aggregate_list(response: RawResponse) -> tuple[AggregateSummary, ...]:
 
 def _aggregate_summary(record: Mapping[str, Any], *, survey: str | None) -> AggregateSummary:
     identifier = record.get("id", record.get("agregado"))
-    try:
-        aggregate_id = int(identifier)
-    except (TypeError, ValueError) as error:
-        raise ParseError(f"aggregate record has no numeric id: {record!r}") from error
+    code = _numeric_code(identifier, context="aggregate")
+    aggregate_id = int(code)
+    if aggregate_id <= 0:
+        raise ParseError("aggregate record must have a positive id")
     return AggregateSummary(
         aggregate_id=aggregate_id,
         name=_first_string(record, "nome", "name", "descricao"),
@@ -185,8 +189,12 @@ def parse_aggregate_observations(
 ) -> tuple[AggregateObservation, ...]:
     """Parse the self-describing Aggregates v3 variable-result layout."""
 
-    records = as_records(parse_json(response), url=response.url)
+    payload = parse_json(response)
+    if not isinstance(payload, list):
+        raise ParseError("aggregate observations require the default JSON array view")
+    records = as_records(payload, url=response.url)
     observations: list[AggregateObservation] = []
+    aggregate_id = _positive_id(aggregate_id)
     for variable in records:
         variable_id = _required_string(variable, "id", context="variable")
         variable_name = _first_string(variable, "variavel", "nome")
@@ -212,7 +220,9 @@ def parse_aggregate_observations(
                 level = locality.get("nivel")
                 level_id = _first_string(level, "id") if isinstance(level, dict) else None
                 for period_code, raw in values.items():
-                    raw_value = str(raw)
+                    if not re.fullmatch(r"[0-9]+", period_code):
+                        raise ParseError("aggregate period must be a numeric code")
+                    raw_value = raw
                     value, special = _decode_value(raw_value)
                     observations.append(
                         AggregateObservation(
@@ -243,22 +253,30 @@ def _classifications(value: object) -> tuple[tuple[str, str, str], ...]:
             raise ParseError("aggregate classification must be an object")
         classification_id = _required_string(classification, "id", context="classification")
         categories = classification.get("categoria")
-        if not isinstance(categories, dict):
-            raise ParseError("aggregate classification has no categoria object")
+        if not isinstance(categories, dict) or not categories:
+            raise ParseError("aggregate classification has no non-empty categoria object")
         for category_id, category_name in categories.items():
-            output.append((classification_id, str(category_id), str(category_name)))
+            code = _numeric_code(category_id, context="category")
+            if not isinstance(category_name, str) or not category_name:
+                raise ParseError("aggregate category name must be a non-empty string")
+            output.append((classification_id, code, category_name))
     return tuple(output)
 
 
 def _required_string(record: Mapping[str, Any], key: str, *, context: str) -> str:
-    value = record.get(key)
-    if value is None or not str(value):
-        raise ParseError(f"aggregate {context} has no {key}")
-    return str(value)
+    return _numeric_code(record.get(key), context=context)
+
+
+def _numeric_code(value: object, *, context: str) -> str:
+    if type(value) is int and value >= 0:
+        return str(value)
+    if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
+        return value
+    raise ParseError(f"aggregate {context} must have a numeric code")
 
 
 def _positive_id(value: int) -> int:
-    if value <= 0:
+    if type(value) is not int or value <= 0:
         raise InvalidQueryError("aggregate and variable IDs must be positive integers")
     return value
 
@@ -267,5 +285,7 @@ def _first_string(record: Mapping[str, Any], *keys: str) -> str | None:
     for key in keys:
         value = record.get(key)
         if value is not None:
-            return str(value)
+            if not isinstance(value, str):
+                raise ParseError(f"aggregate {key} must be a string")
+            return value
     return None

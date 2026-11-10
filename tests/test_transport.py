@@ -18,7 +18,7 @@ def test_raw_response_hash_is_content_addressed() -> None:
     assert response.sha256 == "f16d05ec6b29248d2c61adb1e9263f78e4f7bace1b955014a2d17872cfe4064d"
     assert response.byte_size == 7
     assert response.library_version == "0.1.0"
-    assert response.parser_version == "ibge-json-1"
+    assert response.parser_version == "ibge-json-2"
     with pytest.raises(TypeError):
         response.headers["etag"] = "changed"  # type: ignore[index]
 

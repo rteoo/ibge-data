@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from types import MappingProxyType
-from typing import Mapping, Protocol
+from typing import Protocol
 
 from .errors import HttpStatusError, TransportError
 
-PARSER_VERSION = "ibge-json-1"
+PARSER_VERSION = "ibge-json-2"
 
 
 @dataclass(frozen=True)
@@ -47,6 +49,7 @@ class RawResponse:
                 self.url,
                 headers=dict(self.headers),
                 retry_after=self.retry_after,
+                response=self,
             )
 
 
@@ -59,8 +62,10 @@ class UrllibTransport:
     """Opt-in standard-library HTTP transport."""
 
     def __init__(self, *, timeout: float = 30.0):
-        if timeout <= 0:
-            raise ValueError("timeout must be positive")
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+            raise ValueError("timeout must be a finite positive number")
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError("timeout must be a finite positive number")
         self.timeout = timeout
 
     def get(self, url: str, *, headers: Mapping[str, str] | None = None) -> RawResponse:
@@ -101,7 +106,8 @@ def _retry_after(headers: Mapping[str, str]) -> float | None:
     if not raw:
         return None
     try:
-        return max(float(raw), 0.0)
+        seconds = float(raw)
+        return max(seconds, 0.0) if math.isfinite(seconds) else None
     except ValueError:
         pass
     try:

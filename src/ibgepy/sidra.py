@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from enum import Enum
-from typing import Any, Literal, Mapping
+from typing import Any, Literal
 from urllib.parse import quote
 
 from ._json import as_records, fetch_json, parse_json
@@ -17,20 +18,41 @@ SIDRA_DESCRIPTOR_BASE = "https://apisidra.ibge.gov.br/DescritoresTabela/t"
 MAX_VALUES = 100_000
 
 
+def _positive_integer(value: object, *, field: str) -> None:
+    if type(value) is not int or value <= 0:
+        raise InvalidQueryError(f"{field} must be a positive integer")
+
+
+def _atomic_codes(values: object, *, field: str) -> None:
+    if not isinstance(values, tuple) or not values:
+        raise InvalidQueryError(f"{field} must be a non-empty tuple of atomic numeric codes")
+    if any(not isinstance(value, str) or not re.fullmatch(r"[0-9]+", value) for value in values):
+        raise InvalidQueryError(
+            f"{field} must contain non-empty atomic numeric codes; use one code per tuple member"
+        )
+    if len(set(values)) != len(values):
+        raise InvalidQueryError(f"{field} cannot contain duplicate codes")
+
+
+def _selection(values: object, known_count: object, *, field: str, wildcards: set[str]) -> None:
+    if isinstance(values, str):
+        if values not in wildcards:
+            raise InvalidQueryError(f"unsupported {field} selector")
+    else:
+        _atomic_codes(values, field=field)
+    if known_count is not None:
+        _positive_integer(known_count, field="known_count")
+        if isinstance(values, tuple) and known_count != len(values):
+            raise InvalidQueryError("known_count must match the number of explicit codes")
+
+
 @dataclass(frozen=True)
 class VariableSelection:
     values: tuple[str, ...] | Literal["all", "allxp"]
     known_count: int | None = None
 
     def __post_init__(self) -> None:
-        if isinstance(self.values, tuple) and not self.values:
-            raise InvalidQueryError("variables cannot be empty")
-        if isinstance(self.values, tuple) and any(not value for value in self.values):
-            raise InvalidQueryError("variable values cannot contain empty members")
-        if isinstance(self.values, str) and self.values not in {"all", "allxp"}:
-            raise InvalidQueryError("unsupported variable selector")
-        if self.known_count is not None and self.known_count <= 0:
-            raise InvalidQueryError("known_count must be positive")
+        _selection(self.values, self.known_count, field="variables", wildcards={"all", "allxp"})
 
     @property
     def count(self) -> int | None:
@@ -47,16 +69,9 @@ class GeographySelection:
     known_count: int | None = None
 
     def __post_init__(self) -> None:
-        if self.level not in {"n1", "n2", "n3", "n6"}:
+        if not isinstance(self.level, str) or self.level not in {"n1", "n2", "n3", "n6"}:
             raise InvalidQueryError("geography level must be one of n1, n2, n3, or n6")
-        if isinstance(self.values, tuple) and not self.values:
-            raise InvalidQueryError("geography values cannot be empty")
-        if isinstance(self.values, tuple) and any(not value for value in self.values):
-            raise InvalidQueryError("geography values cannot contain empty members")
-        if isinstance(self.values, str) and self.values != "all":
-            raise InvalidQueryError("unsupported geography selector")
-        if self.known_count is not None and self.known_count <= 0:
-            raise InvalidQueryError("known_count must be positive")
+        _selection(self.values, self.known_count, field="geography", wildcards={"all"})
 
     @property
     def count(self) -> int | None:
@@ -73,16 +88,10 @@ class ClassificationSelection:
     known_count: int | None = None
 
     def __post_init__(self) -> None:
-        if not self.code:
-            raise InvalidQueryError("classification code cannot be empty")
-        if isinstance(self.categories, tuple) and not self.categories:
-            raise InvalidQueryError("classification categories cannot be empty")
-        if isinstance(self.categories, tuple) and any(not value for value in self.categories):
-            raise InvalidQueryError("classification categories cannot contain empty members")
-        if isinstance(self.categories, str) and self.categories not in {"all", "allxt"}:
-            raise InvalidQueryError("unsupported classification selector")
-        if self.known_count is not None and self.known_count <= 0:
-            raise InvalidQueryError("known_count must be positive")
+        _atomic_codes((self.code,), field="classification code")
+        _selection(
+            self.categories, self.known_count, field="categories", wildcards={"all", "allxt"}
+        )
 
     @property
     def count(self) -> int | None:
@@ -99,11 +108,13 @@ class OutputOptions:
     decimals: Literal["s", "m"] | int = "m"
 
     def __post_init__(self) -> None:
-        if self.fields not in {"a", "c", "n", "u"}:
+        if type(self.header) is not bool:
+            raise InvalidQueryError("header must be a boolean")
+        if not isinstance(self.fields, str) or self.fields not in {"a", "c", "n", "u"}:
             raise InvalidQueryError("fields must be one of a, c, n, or u")
-        if isinstance(self.decimals, int) and not 0 <= self.decimals <= 9:
-            raise InvalidQueryError("decimals must be between 0 and 9")
-        if not isinstance(self.decimals, int) and self.decimals not in {"s", "m"}:
+        if type(self.decimals) is int and 0 <= self.decimals <= 9:
+            return
+        if not isinstance(self.decimals, str) or self.decimals not in {"s", "m"}:
             raise InvalidQueryError("decimals must be s, m, or an integer from 0 to 9")
 
 
@@ -118,26 +129,36 @@ class SidraQuery:
     include_extinct_territories: bool = False
 
     def __post_init__(self) -> None:
-        if self.table <= 0:
-            raise InvalidQueryError("table must be a positive integer")
-        if isinstance(self.periods, tuple) and not self.periods:
-            raise InvalidQueryError("periods cannot be empty")
-        if isinstance(self.periods, tuple) and any(not period for period in self.periods):
-            raise InvalidQueryError("periods cannot contain empty members")
-        if isinstance(self.periods, str) and not self.periods:
-            raise InvalidQueryError("period selector cannot be empty")
+        _positive_integer(self.table, field="table")
+        if isinstance(self.periods, str):
+            if self.periods != "all" and not re.fullmatch(r"[0-9]+|last [1-9][0-9]*", self.periods):
+                raise InvalidQueryError("periods must be atomic codes, a single code, or 'last N'")
+        else:
+            _atomic_codes(self.periods, field="periods")
+        if not isinstance(self.variables, VariableSelection):
+            raise InvalidQueryError("variables must be a VariableSelection")
+        if not isinstance(self.geography, GeographySelection):
+            raise InvalidQueryError("geography must be a GeographySelection")
+        if not isinstance(self.output, OutputOptions):
+            raise InvalidQueryError("output must be OutputOptions")
+        if type(self.include_extinct_territories) is not bool:
+            raise InvalidQueryError("include_extinct_territories must be a boolean")
+        if not isinstance(self.classifications, tuple) or any(
+            not isinstance(item, ClassificationSelection) for item in self.classifications
+        ):
+            raise InvalidQueryError("classifications must be a tuple of ClassificationSelection")
         if len(self.classifications) > 6:
             raise InvalidQueryError("SIDRA permits at most six classifications")
-        if any(not item.code for item in self.classifications):
-            raise InvalidQueryError("classification codes cannot be empty")
+        if len({item.code for item in self.classifications}) != len(self.classifications):
+            raise InvalidQueryError("classification codes cannot be repeated")
 
     @property
     def period_count(self) -> int | None:
         if isinstance(self.periods, tuple):
             return len(self.periods)
-        if re.fullmatch(r"\d+", self.periods):
+        if re.fullmatch(r"[0-9]+", self.periods):
             return 1
-        match = re.fullmatch(r"last\s+(\d+)", self.periods, flags=re.IGNORECASE)
+        match = re.fullmatch(r"last ([1-9][0-9]*)", self.periods)
         if match:
             return int(match.group(1))
         return None
@@ -163,15 +184,26 @@ class SidraQuery:
         )
 
     def validate_bound(self, *, max_values: int = MAX_VALUES) -> None:
-        if max_values <= 0 or max_values > MAX_VALUES:
+        if type(max_values) is not int or not 0 < max_values <= MAX_VALUES:
             raise InvalidQueryError(f"max_values must be between 1 and {MAX_VALUES}")
         estimate = self.estimated_values
         if estimate is None:
+            counts = (self.geography.count, self.variables.count, self.period_count)
+            counts += tuple(item.count for item in self.classifications)
+            unknown = tuple(
+                role for role, count in zip(self.dimension_order, counts) if count is None
+            )
             raise QueryTooLargeError(
-                "query cardinality is unknown; supply explicit selectors or known_count metadata"
+                "query cardinality is unknown; supply explicit selectors or known_count metadata",
+                max_values=max_values,
+                unknown_dimensions=unknown,
             )
         if estimate is not None and estimate > max_values:
-            raise QueryTooLargeError(f"query estimates {estimate} values; limit is {max_values}")
+            raise QueryTooLargeError(
+                f"query estimates {estimate} values; limit is {max_values}",
+                estimated_values=estimate,
+                max_values=max_values,
+            )
 
 
 class SpecialValue(str, Enum):
@@ -254,12 +286,13 @@ def fetch_values(query: SidraQuery, transport: Transport) -> RawResponse:
 
 
 def fetch_descriptor(table: int, transport: Transport) -> RawResponse:
-    if table <= 0:
-        raise InvalidQueryError("table must be a positive integer")
+    _positive_integer(table, field="table")
     return fetch_json(f"{SIDRA_DESCRIPTOR_BASE}/{table}", transport)
 
 
 def _decode_value(raw: str) -> tuple[Decimal | None, SpecialValue | None]:
+    if not isinstance(raw, str):
+        raise ParseError("IBGE observation values must be strings; preserve the original token")
     special = {
         "-": SpecialValue.ABSOLUTE_ZERO,
         "0": SpecialValue.CALCULATED_ZERO,
@@ -269,31 +302,59 @@ def _decode_value(raw: str) -> tuple[Decimal | None, SpecialValue | None]:
     }.get(raw)
     if special is not None:
         return (Decimal("0") if raw in {"-", "0"} else None), special
-    try:
-        return Decimal(raw), None
-    except InvalidOperation:
-        pass
-    if len(raw) == 1 and raw.isalpha() and raw.isupper():
+    if re.fullmatch(r"[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?", raw):
+        try:
+            number = Decimal(raw)
+        except InvalidOperation as error:
+            raise ParseError("SIDRA numeric token is outside Decimal's supported range") from error
+        if number.is_finite():
+            return number, None
+    if re.fullmatch(r"[A-Z]", raw):
         return None, SpecialValue.RANGE
-    raise ParseError(f"unknown SIDRA value token: {raw!r}")
+    raise ParseError("unknown SIDRA value token; inspect the retained raw response")
 
 
 def parse_values(response: RawResponse, query: SidraQuery) -> tuple[SidraObservation, ...]:
     payload = parse_json(response)
+    if not isinstance(payload, list):
+        raise ParseError("SIDRA Values response must be a JSON array")
     records = as_records(payload, url=response.url)
     observations: list[SidraObservation] = []
-    for record in records:
+    estimate = query.estimated_values
+    seen: set[tuple[str | None, ...]] = set()
+    selections = (query.geography.values, query.variables.values, query.periods)
+    selections += tuple(item.categories for item in query.classifications)
+    memberships = tuple(
+        frozenset(selection) if isinstance(selection, tuple) else selection
+        for selection in selections
+    )
+    for index, record in enumerate(records):
         if "V" not in record:
-            continue
+            raise ParseError(f"SIDRA record {index} is missing V")
         if _is_header_record(record):
+            if index != 0:
+                raise ParseError("SIDRA header must occur only at the start of a response")
+            _validate_dimensions(record, query, memberships, header=True)
             continue
-        raw_value = str(record["V"])
+        if index == 0 and query.output.header:
+            raise ParseError("SIDRA response is missing the requested header")
+        if estimate is not None and len(observations) >= estimate:
+            raise ParseError(
+                "SIDRA response exceeds the asserted query bound; verify count metadata"
+            )
+        _validate_dimensions(record, query, memberships)
+        raw_value = record["V"]
         value, special = _decode_value(raw_value)
         dimensions: list[DimensionValue] = []
         for position, role in enumerate(query.dimension_order, start=1):
             code = _optional_string(record.get(f"D{position}C"))
             name = _optional_string(record.get(f"D{position}N"))
             dimensions.append(DimensionValue(position, code, name, role))
+        dimension_key = tuple(dimension.code for dimension in dimensions)
+        if all(code is not None for code in dimension_key):
+            if dimension_key in seen:
+                raise ParseError("SIDRA response contains duplicate dimension codes")
+            seen.add(dimension_key)
         period_index = query.dimension_order.index("period") + 1
         variable_index = query.dimension_order.index("variable") + 1
         observations.append(
@@ -313,6 +374,55 @@ def parse_values(response: RawResponse, query: SidraQuery) -> tuple[SidraObserva
     return tuple(observations)
 
 
+def _validate_dimensions(
+    record: Mapping[str, Any],
+    query: SidraQuery,
+    selections: tuple[frozenset[str] | str, ...],
+    *,
+    header: bool = False,
+) -> None:
+    expected = len(query.dimension_order)
+    allowed_keys = {
+        f"D{position}{field_name}"
+        for position in range(1, expected + 1)
+        for field_name in "CN"
+    }
+    actual_keys = {key for key in record if re.fullmatch(r"D[0-9]+[CN]", key)}
+    if not actual_keys.issubset(allowed_keys):
+        raise ParseError(
+            "SIDRA dimensions do not match the query; select classifications explicitly"
+        )
+    for position, selection in enumerate(selections, start=1):
+        fields = {
+            "a": "CN", "c": "C", "n": "N", "u": "CN" if position == 1 else "N"
+        }[query.output.fields]
+        for field_name in fields:
+            value = record.get(f"D{position}{field_name}")
+            if not isinstance(value, str) or not value:
+                raise ParseError(
+                    f"SIDRA dimension D{position}{field_name} must be a non-empty string"
+                )
+        code = record.get(f"D{position}C")
+        if not header and code is not None:
+            if not isinstance(code, str) or not re.fullmatch(r"[0-9]+", code):
+                raise ParseError(f"SIDRA dimension D{position}C must be a numeric code")
+            if isinstance(selection, frozenset) and code not in selection:
+                raise ParseError(f"SIDRA dimension D{position}C is outside the explicit selection")
+            if position == 3 and isinstance(selection, str) and re.fullmatch(r"[0-9]+", selection):
+                if code != selection:
+                    raise ParseError("SIDRA period is outside the explicit selection")
+    if header:
+        geography_name = {
+            "n1": "Brasil", "n2": "Grande Região", "n3": "Unidade da Federação", "n6": "Município"
+        }[query.geography.level]
+        geography_label = record.get("D1N", record.get("D1C"))
+        if geography_label not in {geography_name, f"{geography_name} (Código)"}:
+            raise ParseError("SIDRA geography dimension is not in the expected position")
+        label = record.get("D2N", record.get("D2C"))
+        if label not in {"Variável", "Variável (Código)"}:
+            raise ParseError("SIDRA variable dimension is not in the expected position")
+
+
 def _is_header_record(record: Mapping[str, Any]) -> bool:
     """SIDRA emits a labels row when `h/y` is requested."""
 
@@ -320,4 +430,6 @@ def _is_header_record(record: Mapping[str, Any]) -> bool:
 
 
 def _optional_string(value: Any) -> str | None:
-    return None if value is None else str(value)
+    if value is not None and not isinstance(value, str):
+        raise ParseError("SIDRA fields must be strings or null; coercion would lose source meaning")
+    return value
