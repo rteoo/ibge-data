@@ -1,7 +1,7 @@
 # ibge-data
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/rteoo/ibge-data/main/docs/ibge-data-icon.svg" width="128" alt="ibge-data statistical columns icon">
+  <img src="https://raw.githubusercontent.com/rteoo/ibge-data/v0.1.0/docs/ibge-data-icon.svg" width="128" alt="ibge-data statistical columns icon">
 </p>
 
 <p align="center">
@@ -11,7 +11,8 @@
 
 <p align="center">
   <a href="https://github.com/rteoo/ibge-data/actions/workflows/tests.yml"><img src="https://github.com/rteoo/ibge-data/actions/workflows/tests.yml/badge.svg" alt="Test status"></a>
-  <a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10 or newer"></a>
+  <a href="https://pypi.org/project/ibge-data/"><img src="https://img.shields.io/pypi/v/ibge-data?label=PyPI" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/ibge-data/"><img src="https://img.shields.io/pypi/pyversions/ibge-data" alt="Supported Python versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
@@ -32,13 +33,12 @@ replayed offline. This is an independent client, not an official IBGE product.
 ## Installation
 
 Install the `ibge-data` distribution; use `ibge_data` in Python imports.
-The first PyPI release is being prepared. After publication:
 
 ```bash
 pip install ibge-data
 ```
 
-Until then, install from source:
+Or from source:
 
 ```bash
 git clone https://github.com/rteoo/ibge-data.git
@@ -192,6 +192,16 @@ ibge-data/
 └── README.md
 ```
 
+## Related Clients
+
+| Library | Python import | Official data source |
+|---|---|---|
+| [bcb-data](https://github.com/rteoo/bcb-data) | `bcb_data` | Banco Central do Brasil SGS |
+| [ibge-data](https://github.com/rteoo/ibge-data) | `ibge_data` | IBGE SIDRA, Aggregates, and Calendar |
+| [cvmbr-data](https://github.com/rteoo/cvmbr-data) | `cvmbr_data` | CVM open data and RAD/ENET filings |
+
+Each client is an independent package. Install only the libraries your project uses.
+
 ## Development
 
 ```bash
@@ -222,7 +232,8 @@ check the source's terms and attribution requirements when redistributing it.
 
 ## Releasing
 
-The first `ibge-data` release is prepared as 0.1.0. The package uses the new
-`ibge_data` import namespace and does not install the unrelated PyPI project's
-`ibgepy` namespace. See [release preparation](docs/releasing.md) for publisher
-configuration and release gates. No PyPI upload is performed by preparing this patch.
+The version in `pyproject.toml` must match `ibge_data.__version__`. Releases
+run from clean `main` matching `origin/main`, with a matching `vX.Y.Z` tag.
+See the [release guide](docs/releasing.md) for publisher configuration and gates.
+Only a final GitHub Release triggers the PyPI workflow; ordinary pushes, bare
+tags, and prereleases do not publish a package.
