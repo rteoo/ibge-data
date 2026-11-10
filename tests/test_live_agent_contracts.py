@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from ibgepy import (
+from ibgedata import (
     ClassificationSelection,
     GeographySelection,
     OutputOptions,

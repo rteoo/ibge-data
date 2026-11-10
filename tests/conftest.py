@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Mapping
 
-from ibgepy.transport import RawResponse
+from ibgedata.transport import RawResponse
 
 
 class FixtureTransport:

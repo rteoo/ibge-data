@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from conftest import FixtureTransport
 
-from ibgepy import (
+from ibgedata import (
     ClassificationSelection,
     GeographySelection,
     HttpStatusError,
@@ -27,7 +27,7 @@ from ibgepy import (
     parse_aggregate_observations,
     parse_values,
 )
-from ibgepy.transport import _retry_after
+from ibgedata.transport import _retry_after
 
 
 def query(**changes) -> SidraQuery:
@@ -251,7 +251,7 @@ def test_malformed_gzip_raises_a_typed_error(payload) -> None:
 
 @pytest.mark.parametrize("compressed", [False, True])
 def test_decoded_json_has_a_bounded_size(monkeypatch, compressed) -> None:
-    monkeypatch.setattr("ibgepy._json.MAX_JSON_BYTES", 32)
+    monkeypatch.setattr("ibgedata._json.MAX_JSON_BYTES", 32)
     body = b'[{"name":"' + b"x" * 64 + b'"}]'
     payload = gzip.compress(body, mtime=0) if compressed else body
     headers = {"content-encoding": "gzip"} if compressed else {}
